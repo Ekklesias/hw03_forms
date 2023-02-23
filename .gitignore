@@ -144,3 +144,8 @@ dmypy.json
 .history/
 
 .mypy_cache
+test3.py
+test2.py
+test.py
+assertSelftest.py
+assert_test.py
