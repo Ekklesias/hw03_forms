@@ -1,16 +1,21 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
+from django.conf import settings
 
 from posts.forms import PostForm
 from .models import Post, Group, User
 
 
-def index(request):
-    posts = Post.objects.all()
-    paginator = Paginator(posts, 10)
+def get_page_object(request, posts):
+    paginator = Paginator(posts, settings.POSTS_AMOUNT)
     page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    return paginator.get_page(page_number)
+
+
+def index(request):
+    posts = Post.objects.select_related('author', 'group')
+    page_obj = get_page_object(request, posts)
     context = {
         'page_obj': page_obj,
     }
@@ -19,13 +24,11 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    posts = group.posts.all()
-    paginator = Paginator(posts, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    posts = group.posts.select_related('author')
+    page_obj = get_page_object(request, posts)
     context = {
+        'group': group,
         'page_obj': page_obj,
-        'group': group
     }
     return render(request, 'posts/group_list.html', context)
 
